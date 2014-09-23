@@ -8,20 +8,29 @@
  * @version 1.00 2008/6/13
  */
  
- //para ver si funciona
 import java.applet.AudioClip;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Toolkit;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.URL;
 import java.util.LinkedList;
 import javax.swing.JFrame;
 
 
-public class AppletExamen extends JFrame implements Runnable, MouseListener {
+public class AppletExamen extends JFrame implements Runnable, MouseListener,
+        KeyListener {
 
     /* objetos para manejar el buffer del Applet y este no parpadee */
     private Image    imaImagenApplet;   // Imagen a proyectar en Applet	
@@ -43,6 +52,7 @@ public class AppletExamen extends JFrame implements Runnable, MouseListener {
     private Image imaImagenGameover;    // Imagen de gameover
     private SoundClip souCaminador; // Objeto SoundClip sonido caminador
     private SoundClip souCorredor; // Objeto SoundClip sonido corredor
+    private boolean bPausa; //Booleana para pausar juego
     /** 
      * init
      * 
@@ -76,6 +86,7 @@ public class AppletExamen extends JFrame implements Runnable, MouseListener {
         // inicializa random de corredores
         iRandomCorredores = (int) (Math.random() * 4 + 12);
         
+        bPausa=false;
         /*
         * inicializa direccion de nena hacia la dercha. 
         * 1 = arriba
@@ -148,6 +159,7 @@ public class AppletExamen extends JFrame implements Runnable, MouseListener {
         
         // se añade para que el mouse sea escuchado en el applet
         addMouseListener(this);
+        addKeyListener(this);
     }
 	
     /** 
@@ -182,7 +194,9 @@ public class AppletExamen extends JFrame implements Runnable, MouseListener {
                se checa si hubo colisiones para desaparecer jugadores o corregir
                movimientos y se vuelve a pintar todo
             */ 
-            actualiza();
+            if(!bPausa){
+                actualiza();
+            }
             checaColision();
             repaint();
             try	{
@@ -422,5 +436,24 @@ public class AppletExamen extends JFrame implements Runnable, MouseListener {
 
     @Override
     public void mouseExited(MouseEvent e) {
+    }
+
+    @Override
+    public void keyTyped(KeyEvent ke) {
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void keyPressed(KeyEvent ke) {
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void keyReleased(KeyEvent keyEvent) {
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if(keyEvent.getKeyCode() == KeyEvent.VK_P){
+            bPausa=!bPausa;
+        }
+        
     }
 }
