@@ -52,6 +52,7 @@ public class AppletExamen extends JFrame implements Runnable, MouseListener,
     private int iDireccionNena;         // indica la dirección de nena
     private LinkedList lnkCaminadores;  // Coleccion de caminadores
     private LinkedList lnkCorredores;   // Coleccion de corredores
+    private int iVidasInicial;          //Cuenta con cuantas vidas inició
     private Personaje perCaminador;   // objeto de la clase personaje
     private Personaje perCorredor;    // objeto de la case personaje
     private int iCaminadores;          // Caminadores al azar
@@ -123,6 +124,9 @@ public class AppletExamen extends JFrame implements Runnable, MouseListener,
 
         // inicializa random de vidas
         iVidas = (int) (Math.random() * 3 + 4 );
+        
+        // Le suma uno a las vidas iniciales.
+        iVidasInicial = iVidas+1;
         
         // se crea imagen de Nena
         URL urlImagenNena = this.getClass().getResource("nena.gif");
@@ -257,7 +261,8 @@ public class AppletExamen extends JFrame implements Runnable, MouseListener,
         // actualiza coleccion de corredores
         for (Object lnkCorredor : lnkCorredores) {
            Personaje perCorredor = (Personaje)lnkCorredor;
-           perCorredor.derecha();
+           perCorredor.setX(perCorredor.getX() + (iVidasInicial - 
+                   iRandomVidas));
         }
     }
 	
@@ -421,24 +426,29 @@ public class AppletExamen extends JFrame implements Runnable, MouseListener,
          // si se hace click
         bClick = true;
         
-        //Click a la izquierda del elefante
-        if (mouEvent.getX() < perNena.getX()){
-            iDireccionNena = 4;
-            
-            //Click a la derecha del elefante
-        } else if (mouEvent.getX() > perNena.getX() + perNena.getAncho()) {
-            iDireccionNena = 3;
-            
-            //Click arriba del elefante
-        } else if (mouEvent.getY() < perNena.getY()) {
-            iDireccionNena = 1;
-            
-            //Click debajo del elefante
-        } else if (mouEvent.getY() > perNena.getY() + perNena.getAlto()) {
-            iDireccionNena = 2;
+        //Decide la direccion en la que Nena se mueve dependiendo en donde se
+        //le de click
+        if(mouEvent.getX() > perNena.getX()){
+            if(iDireccionNena == 3){
+                if(mouEvent.getY() > perNena.getY()){
+                    iDireccionNena=2;
+                } else{
+                    iDireccionNena=1;
+                }
+            } else{
+                iDireccionNena=3;
+            }         
+        } else{
+            if(iDireccionNena == 4){
+                if(mouEvent.getY() > perNena.getY()){
+                    iDireccionNena=2;
+                } else{
+                    iDireccionNena=1;
+                }
+            } else{
+                iDireccionNena=4;
+            }       
         }
-        
-        
     }
 
     @Override
@@ -521,6 +531,8 @@ public class AppletExamen extends JFrame implements Runnable, MouseListener,
     	iScore = Integer.parseInt(brwEntrada.readLine());
         // ahora leo las vidas que esta en la linea 2
     	iVidas = Integer.parseInt(brwEntrada.readLine());
+        // Lee el numero de vidas iniciales
+        iVidasInicial = Integer.parseInt(brwEntrada.readLine());
         // ahora leo la posición en x de Nena
         perNena.setX(Integer.parseInt(brwEntrada.readLine()));
         // ahora leo la posicion en y de Nena
@@ -572,9 +584,11 @@ public class AppletExamen extends JFrame implements Runnable, MouseListener,
             prwSalida.println(iScore);
             // guardo en  linea 2 las vidas
             prwSalida.println(iVidas);
-            // guardo en linea 3 la posicion en x de Nena
+            // guardo en  linea 3 el numero de la vidaa inicial
+            prwSalida.println(iVidasInicial);
+            // guardo en linea 4 la posicion en x de Nena
             prwSalida.println(perNena.getX());
-            // guardo en linea 4 la posicion en y de Nena
+            // guardo en linea 5 la posicion en y de Nena
             prwSalida.println(perNena.getY());
             // guardo numero de Caminadores
             prwSalida.println(iCaminadores);
