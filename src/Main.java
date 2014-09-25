@@ -13,7 +13,8 @@ import javax.swing.JFrame;
 
 /**
  *
- * @author omarcarreon
+ * @author Omar Antonio Carreón Medrano A01036074
+ * @author Gabriel Salazar De Urquidi A01139126
  */
 public class Main {
     
