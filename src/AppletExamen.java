@@ -7,7 +7,14 @@
  * @author Gabriel Salazar De Urquidi A01139126
  * @version 1.00 2008/6/13
  */
- 
+ /**
+  * FALTANTE
+  * -Imagen GameOver (Omar)
+  * -Velocidades de corredores (Gabriel)
+  * -Verificar que no se salgan del applet de corredores y caminadores (Omar)
+  * -Reemplazar movimiento de Nena  (Gabriel)
+  */
+
 import java.applet.AudioClip;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -26,6 +33,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.LinkedList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
 
 
@@ -35,7 +44,7 @@ public class AppletExamen extends JFrame implements Runnable, MouseListener,
     /* objetos para manejar el buffer del Applet y este no parpadee */
     private Image    imaImagenApplet;   // Imagen a proyectar en Applet	
     private Graphics graGraficaApplet;  // Objeto grafico de la Imagen
-    private int iRandomVidas;           // Vidas al azar
+    private int iVidas;           // Vidas al azar
     private Personaje perNena;          // Objeto de la clase Personaje
     private int iPosX;                  // Posicion X
     private int iPosY;                  // Posicion Y
@@ -45,14 +54,17 @@ public class AppletExamen extends JFrame implements Runnable, MouseListener,
     private LinkedList lnkCorredores;   // Coleccion de corredores
     private Personaje perCaminador;   // objeto de la clase personaje
     private Personaje perCorredor;    // objeto de la case personaje
-    private int iRandomCamina;          // Caminadores al azar
-    private int iRandomCorredores;      // corredores al azar
+    private int iCaminadores;          // Caminadores al azar
+    private int iCorredores;      // corredores al azar
     private int iScore;                 // score del juego
     private int iContCorredor;          // contador para corredores
     private Image imaImagenGameover;    // Imagen de gameover
-    private SoundClip souCaminador; // Objeto SoundClip sonido caminador
-    private SoundClip souCorredor; // Objeto SoundClip sonido corredor
-    private boolean bPausa; //Booleana para pausar juego
+    private SoundClip souCaminador;      // Objeto SoundClip sonido caminador
+    private SoundClip souCorredor;       // Objeto SoundClip sonido corredor
+    private boolean bPausa;              //Booleana para pausar juego
+    private String sArchivo;             //Nombre del archivo.
+    private boolean bGuardar;           // Booleana para guardar juego
+    private boolean bCargar;            // Booleana para cargar juego
     /** 
      * init
      * 
@@ -71,9 +83,13 @@ public class AppletExamen extends JFrame implements Runnable, MouseListener,
         
         // introducir instrucciones para iniciar juego
        
+
         // incializa booleano del click
         bClick = false;
-        
+        //inicializa booleano de guardar juego
+        bGuardar = false;
+        // inicializa booleano de cargar juego
+        bCargar = false;
         // inicializa score del juego
         iScore = 0;
         
@@ -81,12 +97,15 @@ public class AppletExamen extends JFrame implements Runnable, MouseListener,
         iContCorredor = 0;
         
         // inicializa random de caminadores
-        iRandomCamina = (int) (Math.random() * 3 + 10);
+        iCaminadores = (int) (Math.random() * 3 + 10);
         
         // inicializa random de corredores
-        iRandomCorredores = (int) (Math.random() * 4 + 12);
+        iCorredores = (int) (Math.random() * 4 + 12);
         
+        // incializa booleana de pausa
         bPausa=false;
+        
+
         /*
         * inicializa direccion de nena hacia la dercha. 
         * 1 = arriba
@@ -103,7 +122,7 @@ public class AppletExamen extends JFrame implements Runnable, MouseListener,
         lnkCaminadores = new LinkedList();
 
         // inicializa random de vidas
-        iRandomVidas = (int) (Math.random() * 3 + 4 );
+        iVidas = (int) (Math.random() * 3 + 4 );
         
         // se crea imagen de Nena
         URL urlImagenNena = this.getClass().getResource("nena.gif");
@@ -118,7 +137,7 @@ public class AppletExamen extends JFrame implements Runnable, MouseListener,
         
 
         // ciclo para crear de 5 a 10 caminadores
-        for (int iI = 1; iI <= iRandomCamina; iI++) {      
+        for (int iI = 1; iI <= iCaminadores; iI++) {      
             URL urlImagenCaminador = 
                     this.getClass().getResource("alien1Camina.gif");
             // se crea Caminador
@@ -132,7 +151,7 @@ public class AppletExamen extends JFrame implements Runnable, MouseListener,
 
         }
                 // ciclo para crear de 8 a 10 corredores
-        for (int iI = 1; iI <= iRandomCorredores; iI++) {
+        for (int iI = 1; iI <= iCorredores; iI++) {
             // se crea el corredor
             URL urlImagenCorredor = 
                     this.getClass().getResource("alien2Corre.gif");
@@ -189,16 +208,17 @@ public class AppletExamen extends JFrame implements Runnable, MouseListener,
      */
     public void run () {
         // se realiza el ciclo del juego mientras las vidas no se acaben
-        while (iRandomVidas != 0) {
+        while (iVidas != 0) {
             /* mientras dure el juego, se actualizan posiciones de jugadores
                se checa si hubo colisiones para desaparecer jugadores o corregir
                movimientos y se vuelve a pintar todo
             */ 
             if(!bPausa){
                 actualiza();
+                checaColision();
+                repaint();
             }
-            checaColision();
-            repaint();
+            
             try	{
                 // El thread se duerme.
                 Thread.sleep (20);
@@ -299,7 +319,7 @@ public class AppletExamen extends JFrame implements Runnable, MouseListener,
             if (perCorredor.colisiona(perNena)) {
                 iContCorredor++;  // incrementa contador de corredor
                 if (iContCorredor % 5 == 0) {
-                    iRandomVidas--;                  
+                    iVidas--;                  
                 }
                 souCorredor.play();
                 // se posiciona al corredor afuera del applet del lado izquierdo
@@ -383,9 +403,9 @@ public class AppletExamen extends JFrame implements Runnable, MouseListener,
             
             g.setColor(Color.white); //pone el string en color blanco
             g.drawString("Score "+ iScore, 100, 50); // Dibuja el score 
-            g.drawString("Vidas " + iRandomVidas, 100, 70); // dibuja las vidas
+            g.drawString("Vidas " + iVidas, 100, 70); // dibuja las vidas
             
-            if (iRandomVidas == 0) {   // si se acabaron las vidas
+            if (iVidas == 0) {   // si se acabaron las vidas
             //    g.drawImage(imaImagenGameover, 0, 0, 
               //  getWidth(), getHeight(), this);
             }
@@ -454,6 +474,126 @@ public class AppletExamen extends JFrame implements Runnable, MouseListener,
         if(keyEvent.getKeyCode() == KeyEvent.VK_P){
             bPausa=!bPausa;
         }
+        if (keyEvent.getKeyCode() == KeyEvent.VK_G && iVidas > 0 && !bPausa) {
+            try {
+                bGuardar = true;
+                grabaArchivo();
+            } catch (IOException ex) {
+                Logger.getLogger(AppletExamen.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+        }
+        if (keyEvent.getKeyCode() == KeyEvent.VK_C && iVidas > 0 && !bPausa) {
+            try {
+                leeArchivo();
+                bCargar = true;
+            } catch (IOException ex) {
+                Logger.getLogger(AppletExamen.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
         
     }
+        /**
+     * Metodo que lee a informacion de un archivo y lo agrega a un vector.
+     *
+     * @throws IOException
+     */
+    public void leeArchivo() throws IOException{
+        // defino el objeto de Entrada para tomar datos
+    	BufferedReader brwEntrada;
+    	try{
+                // creo el objeto de entrada a partir de un archivo de texto
+    		brwEntrada = new BufferedReader(new FileReader(sArchivo));
+    	} catch (FileNotFoundException e){
+                // si marca error es que el archivo no existia entonces lo creo
+    		File filPuntos = new File(sArchivo);
+    		PrintWriter prwSalida = new PrintWriter(filPuntos);
+                // le pongo datos ficticios o de default
+                prwSalida.println("200");
+                prwSalida.println("3");
+                // lo cierro para que se grabe lo que meti al archivo
+    		prwSalida.close();
+                // lo vuelvo a abrir porque el objetivo es leer datos
+    		brwEntrada = new BufferedReader(new FileReader(sArchivo));
+    	}
+        // con el archivo abierto leo los datos que estan guardados
+        // primero saco el score que esta en la linea 1
+    	iScore = Integer.parseInt(brwEntrada.readLine());
+        // ahora leo las vidas que esta en la linea 2
+    	iVidas = Integer.parseInt(brwEntrada.readLine());
+        // ahora leo la posición en x de Nena
+        perNena.setX(Integer.parseInt(brwEntrada.readLine()));
+        // ahora leo la posicion en y de Nena
+        perNena.setY(Integer.parseInt(brwEntrada.readLine()));
+        // ahora leo la cantidad de caminadores
+        iCaminadores = Integer.parseInt(brwEntrada.readLine());
+        lnkCaminadores.clear();
+        for (int iI = 1; iI <= iCaminadores; iI++) {      
+            URL urlImagenCaminador = 
+            this.getClass().getResource("alien1Camina.gif");
+            // se crea Caminador
+            perCaminador = new Personaje(0,0,
+                    Toolkit.getDefaultToolkit().getImage(urlImagenCaminador));
+            // se posiciona a caminador afuera del applet del lado superior
+            perCaminador.setX(Integer.parseInt(brwEntrada.readLine()));
+            perCaminador.setY(Integer.parseInt(brwEntrada.readLine()));
+            lnkCaminadores.add(perCaminador);  // agrega caminador a coleccion
+
+        }
+        iCorredores = Integer.parseInt(brwEntrada.readLine());
+        lnkCorredores.clear();
+        for (int iI = 1; iI <= iCorredores; iI++) {
+            // se crea el corredor
+            URL urlImagenCorredor = 
+                    this.getClass().getResource("alien2Corre.gif");
+            perCorredor = new Personaje(0,0,
+                    Toolkit.getDefaultToolkit().getImage(urlImagenCorredor));
+            // se posiciona al corredor afuera del applet del lado izquierdo
+            perCorredor.setX(Integer.parseInt(brwEntrada.readLine()));
+            perCorredor.setY(Integer.parseInt(brwEntrada.readLine()));
+            lnkCorredores.add(perCorredor); // agrega corredor a la coleccion
+        }
+        
+    	brwEntrada.close();
+    }
+    
+    /**
+     * Metodo que agrega la informacion al archivo.
+     *
+     * @throws IOException
+     */
+    public void grabaArchivo() throws IOException{
+        if (bGuardar) {
+            // se crea archivo
+            sArchivo = "ArchivoTarea.txt";
+            // creo el objeto de salida para grabar en un archivo de texto
+            PrintWriter prwSalida = new PrintWriter(new FileWriter(sArchivo));
+            // guardo en  linea 1 el score
+            prwSalida.println(iScore);
+            // guardo en  linea 2 las vidas
+            prwSalida.println(iVidas);
+            // guardo en linea 3 la posicion en x de Nena
+            prwSalida.println(perNena.getX());
+            // guardo en linea 4 la posicion en y de Nena
+            prwSalida.println(perNena.getY());
+            // guardo numero de Caminadores
+            prwSalida.println(iCaminadores);
+            // guardo posicion de Caminadores
+            for (Object lnkCaminador : lnkCaminadores) {
+                Personaje perCaminador = (Personaje)lnkCaminador;
+                prwSalida.println(perCaminador.getX());
+                prwSalida.println(perCaminador.getY());
+            }
+            // guardo numero de Corredores
+            prwSalida.println(iCorredores);
+            // guardo posicion de Corredores
+            for (Object lnkCorredor : lnkCorredores) {
+                Personaje perCorredor = (Personaje)lnkCorredor;
+                prwSalida.println(perCorredor.getX());
+                prwSalida.println(perCorredor.getY());
+            }
+            // cierro el archivo
+            prwSalida.close();	
+        }
+    }    
 }
